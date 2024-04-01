@@ -1,0 +1,47 @@
+service: swapi-spanish
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-west-2
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:* # Gives access to all DynamoDB actions
+      Resource:
+      - ${DYNAMODB_ARN}
+
+functions:
+  getPlanets:
+    handler: dist/main.getPlanets
+    events:
+      - httpApi:
+          path: /planetas
+          method: get
+  getPlanetById:
+    handler: dist/main.getPlanetById
+    events:
+      - httpApi:
+          path: /planetas/{id}
+          method: get
+  savePlanet:
+    handler: dist/main.savePlanet
+    events:
+      - httpApi:
+          path: /planetas
+          method: post
+
+resources:
+  Resources:
+    PlanetTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${MODULE_TABLE}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
